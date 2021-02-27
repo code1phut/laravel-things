@@ -1,1 +1,2 @@
-# laravel-docker-vue
+# laravel-things
+docker-compose up --build
