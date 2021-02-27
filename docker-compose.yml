@@ -1,0 +1,79 @@
+version: '3'
+services:
+
+  #PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    links:
+      - things_mysql
+    volumes:
+      - ./:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - app-network
+
+  #Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+  #MySQL Service
+  things_mysql:
+    image: mysql:5.7.22
+    container_name: things_mysql
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: things
+      MYSQL_USER: things_admin
+      MYSQL_ROOT_PASSWORD: Matkhau123
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - dbdata:/var/lib/mysql/
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - app-network
+  #Php Admin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - things_mysql
+    ports:
+      - 8080:80
+    environment:
+      MYSQL_USER: adminer
+      MYSQL_PASSWORD: Matkhau123
+      MYSQL_ROOT_PASSWORD: root
+      PMA_HOST: things_mysql
+      PMA_PORT: 3307
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+#Volumes
+volumes:
+  dbdata:
+    driver: local
