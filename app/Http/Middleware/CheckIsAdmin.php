@@ -17,7 +17,7 @@ class CheckIsAdmin
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() === UserRoles::ADMIN) {
+        if (Auth::user()->role === UserRoles::ADMIN) {
             return $next($request);
         } else {
             return response()->json([
